@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import "dotenv/config";
+import studioRouter from  "./modules/studios/studios.routes.js"
 
 
 
@@ -26,6 +27,9 @@ app.get("/", (req, res)=>{
     });
 });
 
+
+// Routes
+app.use("/api/studios", studioRouter)
 
 
 
