@@ -8,3 +8,13 @@ export async function findAllStudios(){
 
    return studios;
 }
+
+
+
+export async function findStudioById(id: string){
+        const studio = await studiosCollection.findOne({
+         id
+        })
+
+        return studio;
+}
