@@ -1,5 +1,5 @@
 import app from "./app.js";
-import { connectToMongoDb } from "./config/datrabase.js"
+import { connectToMongoDb } from "./config/database.js";
 
 const PORT = process.env.PORT || 5050;
 
@@ -13,13 +13,13 @@ async function startServer() {
         app.listen(PORT, () => {
             console.log(`StudioSpace server running on port ${PORT}`);
         })
-    }catch(err){
-         console.error("Failed to start StudioSpace server:", err);
+    } catch (err) {
+        console.error("Failed to start StudioSpace server:", err);
         process.exit(1);
     }
 
 
-    
+
 }
 
 
