@@ -1,8 +1,7 @@
 import { Request, Response } from "express";
-import { findAllStudios, findStudioById, createStudio as createStudioInDB, updateStudio as UpdateStudioInDB } from "./studios.service.js";
+import { findAllStudios, findStudioById, createStudio as createStudioInDB, updateStudio as UpdateStudioInDB, deleteOne } from "./studios.service.js";
 import { createStudioSchema, updateStudioSchema } from "./studios.validation.js";
 import { ObjectId } from "mongodb";
-import { success } from "zod";
 
 
 
@@ -33,13 +32,15 @@ export async function getAllStudios(req: Request, res: Response) {
 
 export async function getSingleStudio(req: Request, res: Response) {
     try {
-        const id = String(req.params.id);
+        const id =  String(req.params.id);
 
          if(!ObjectId.isValid(id)){
             res.status(400).json({
-                   success : true,
+                   success : false,
                 message : "Invalid studio ID"
             });
+
+            return
          };
 
 
@@ -119,11 +120,11 @@ export async function createStudio(req: Request, res: Response) {
 
 export async function updateStudio(req: Request, res: Response) {
     try {
-        const id = String(req.params.id);
+        const id = String(req.params.id)
 
        if(!ObjectId.isValid(id)){
         res.status(400).json({
-            success : true,
+            success : false,
             message : "Invalid studio ID"
         })
        };
@@ -172,4 +173,47 @@ export async function updateStudio(req: Request, res: Response) {
             message: "Failed to update studio"
         })
     }
+}
+
+export async function deleteStudioById(req : Request, res : Response){
+  try{
+
+    const id = String(req.params.id);
+
+    if(!ObjectId.isValid(id)){
+        res.status(404).json({
+            success : false,
+            message : "Invalid studio ID"
+        })
+
+        return
+    }
+
+
+    const result = await deleteOne(String(id));
+
+    if(result.deletedCount === 0){
+        res.status(404).json({
+            success : false,
+            message : "Studio not found"
+
+        })
+        return
+    }
+
+    res.status(200).json({
+         success: true,
+            message: "Studio deleted successfully"
+    })
+
+  }catch(error){
+    console.log(error)
+  res.status(500).json({
+    
+     success: false,
+            message: "Failed to delete studio"
+  })
+  }
+
+     
 }

@@ -1,5 +1,5 @@
 import {Router} from "express"
-import { createStudio, getAllStudios, getSingleStudio, updateStudio } from "./studios.controller.js";
+import { createStudio, deleteStudioById, getAllStudios, getSingleStudio, updateStudio } from "./studios.controller.js";
 
 
 
@@ -10,6 +10,6 @@ router.get("/", getAllStudios)
 router.get("/:id",  getSingleStudio);
 router.post("/", createStudio )
 router.patch("/:id", updateStudio)
-
+router.delete("/:id", deleteStudioById)
 
 export default router

@@ -41,3 +41,14 @@ export async function updateStudio(id: string, studioData: UpdateStudioInput) {
    )
    return result
 }
+
+
+
+export async function deleteOne(id : string){
+const result = await studiosCollection.deleteOne({
+   _id : new ObjectId(id)
+})
+
+return result;
+
+}
