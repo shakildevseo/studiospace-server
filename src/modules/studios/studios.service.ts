@@ -1,6 +1,12 @@
 import { getCollection } from "../../config/database.js";
-import type { CreateStudioInput } from "./studios.validation.js"; 
+import type { CreateStudioInput, UpdateStudioInput } from "./studios.validation.js";
+import { ObjectId } from "mongodb"
+
+
+
+
 const studiosCollection = getCollection("studios");
+
 
 export async function findAllStudios() {
    const studios = await studiosCollection.find({}).toArray();
@@ -12,7 +18,7 @@ export async function findAllStudios() {
 
 export async function findStudioById(id: string) {
    const studio = await studiosCollection.findOne({
-      id
+      _id: new ObjectId(id)
    })
 
    return studio;
@@ -20,6 +26,18 @@ export async function findStudioById(id: string) {
 
 export async function createStudio(studioData: CreateStudioInput) {
    const result = await studiosCollection.insertOne(studioData)
-   
+
    return result;
+}
+
+export async function updateStudio(id: string, studioData: UpdateStudioInput) {
+   const result = await studiosCollection.updateOne(
+      {
+         _id : new ObjectId(id)
+      },
+      {
+         $set: studioData 
+      }
+   )
+   return result
 }

@@ -1,6 +1,8 @@
 import { Request, Response } from "express";
-import { findAllStudios, findStudioById, createStudio as createStudioInDB } from "./studios.service.js";
-import { createStudioSchema } from "./studios.validation.js";
+import { findAllStudios, findStudioById, createStudio as createStudioInDB, updateStudio as UpdateStudioInDB } from "./studios.service.js";
+import { createStudioSchema, updateStudioSchema } from "./studios.validation.js";
+import { ObjectId } from "mongodb";
+import { success } from "zod";
 
 
 
@@ -31,7 +33,15 @@ export async function getAllStudios(req: Request, res: Response) {
 
 export async function getSingleStudio(req: Request, res: Response) {
     try {
-       const id = String(req.params.id)
+        const id = String(req.params.id);
+
+         if(!ObjectId.isValid(id)){
+            res.status(400).json({
+                   success : true,
+                message : "Invalid studio ID"
+            });
+         };
+
 
         const studio = await findStudioById(id)
 
@@ -52,57 +62,114 @@ export async function getSingleStudio(req: Request, res: Response) {
     } catch (err) {
         console.log("Failed to fetch studio", err)
         res.status(500).json({
+            success: false,
             message: "Failed to fetch studio"
         })
     }
 }
 
-export async function createStudio(req : Request, res : Response){
+export async function createStudio(req: Request, res: Response) {
 
-  try{
+    try {
 
-    const studioData = req.body;
+        const studioData = req.body;
 
 
- // data validation
+        // data validation
 
-  const validationResult =  createStudioSchema.safeParse(studioData);
+        const validationResult = createStudioSchema.safeParse(studioData);
 
-    if(!validationResult.success){
-        res.status(400).json({
-            success : false,
-            message : "Invalid studio data",
-            errors : validationResult.error.issues
+        if (!validationResult.success) {
+            res.status(400).json({
+                success: false,
+                message: "Invalid studio data",
+                errors: validationResult.error.issues
+            })
+            return;
+
+
+        }
+
+        const validatedData = validationResult.data
+
+
+        const result = await createStudioInDB(validatedData);
+
+        res.status(201).json({
+            success: true,
+            message: "Successfully created studio",
+            data: result
         })
-        return;
 
+
+
+    } catch (err) {
+        console.error("Failed to create studio", err)
+
+
+        res.status(500).json({
+            status: false,
+            message: "Failed to create studio"
+        })
 
     }
-
-    const validatedData = validationResult.data
-
-
-      const result =  await createStudioInDB(validatedData);
-
-      res.status(201).json({
-        success : true,
-        message : "Successfully created studio",
-        data : result
-      })
-
-    
-
-  }catch(err){
-    console.error("Failed to create studio", err)
-
-
-    res.status(500).json({
-        status : false,
-        message : "Failed to create studio"
-    })
-
-  }
 
 
 }
 
+export async function updateStudio(req: Request, res: Response) {
+    try {
+        const id = String(req.params.id);
+
+       if(!ObjectId.isValid(id)){
+        res.status(400).json({
+            success : true,
+            message : "Invalid studio ID"
+        })
+       };
+
+
+
+        const studioData = req.body;
+
+
+
+        const validationResult = updateStudioSchema.safeParse(studioData)
+
+
+
+        if (!validationResult.success) {
+            res.status(400).json({
+                success: false,
+                message: "Invalid studio data",
+                error: validationResult.error.issues
+            })
+            return
+        }
+
+        const validatedData = validationResult.data
+
+
+        const result = UpdateStudioInDB(id, validatedData)
+
+        if ((await result).matchedCount === 0) {
+            res.status(400).json({
+                success: false,
+                message: "Studio not found"
+            })
+            return
+        }
+
+        res.status(200).json({
+            status : true,
+            message: "Studio updated successfully"
+
+        })
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Failed to update studio"
+        })
+    }
+}

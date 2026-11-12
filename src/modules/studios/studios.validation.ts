@@ -35,4 +35,7 @@ export const createStudioSchema = z.object({
 
 })
 
+export const updateStudioSchema = createStudioSchema.partial().refine((data)=> Object.keys(data).length > 0, {message: "At least one field is required for update"});
+
 export type  CreateStudioInput = z.infer<(typeof createStudioSchema)>
+export type UpdateStudioInput = z.infer<(typeof updateStudioSchema)>
