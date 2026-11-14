@@ -1,3 +1,4 @@
+import { string } from "zod";
 import { getCollection } from "../../config/database.js";
 import type { CreateStudioInput, UpdateStudioInput } from "./studios.validation.js";
 import { ObjectId } from "mongodb"
@@ -8,8 +9,12 @@ import { ObjectId } from "mongodb"
 const studiosCollection = getCollection("studios");
 
 
-export async function findAllStudios() {
-   const studios = await studiosCollection.find({}).toArray();
+export async function findAllStudios(category? : string) {
+
+  const filter =  category ?  {category} : {};
+
+
+   const studios = await studiosCollection.find(filter).toArray();
 
    return studios;
 }
@@ -44,7 +49,7 @@ export async function updateStudio(id: string, studioData: UpdateStudioInput) {
 
 
 
-export async function deleteOne(id : string){
+export async function deleteStudio(id : string){
 const result = await studiosCollection.deleteOne({
    _id : new ObjectId(id)
 })
