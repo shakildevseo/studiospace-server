@@ -1,4 +1,4 @@
-import { string } from "zod";
+import { cidrv4, string } from "zod";
 import { getCollection } from "../../config/database.js";
 import type { CreateStudioInput, UpdateStudioInput } from "./studios.validation.js";
 import { ObjectId } from "mongodb"
@@ -9,9 +9,17 @@ import { ObjectId } from "mongodb"
 const studiosCollection = getCollection("studios");
 
 
-export async function findAllStudios(category? : string) {
+export async function findAllStudios(category? : string, city? : string) {
 
-  const filter =  category ?  {category} : {};
+  const filter : {category? : string, "location.city"? : string} = {};
+
+  if(category){
+   filter.category = category
+  }
+
+  if(city){
+   filter["location.city"] = city
+  }
 
 
    const studios = await studiosCollection.find(filter).toArray();

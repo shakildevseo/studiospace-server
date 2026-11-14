@@ -11,12 +11,21 @@ export async function getAllStudios(req: Request, res: Response) {
   try {
 
    const category =  typeof req.query.category === 'string'
-                    ? req.query.category : undefined
+                    ? req.query.category 
+                    : undefined
+
+
+   const city = typeof req.query.city === 'string' 
+             ? req.query.city
+             : undefined
 
 
 
 
-     const studios = await findAllStudios(category)
+
+
+
+     const studios = await findAllStudios(category, city)
 
      res.status(200).json({
         success : true,
