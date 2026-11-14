@@ -2,53 +2,99 @@ import { Request, Response } from "express";
 import { findAllStudios, findStudioById, createStudio as createStudioInDB, updateStudio as UpdateStudioInDB, deleteStudio } from "./studios.service.js";
 import { createStudioSchema, updateStudioSchema } from "./studios.validation.js";
 import { ObjectId } from "mongodb";
-import { string } from 'zod';
+
 
 
 
 export async function getAllStudios(req: Request, res: Response) {
 
-  try {
+    try {
 
-   const category =  typeof req.query.category === 'string'
-                    ? req.query.category 
-                    : undefined
-
-
-   const city = typeof req.query.city === 'string' 
-             ? req.query.city
-             : undefined
+        const category = typeof req.query.category === 'string'
+            ? req.query.category
+            : undefined
 
 
+        const city = typeof req.query.city === 'string'
+            ? req.query.city
+            : undefined
+
+        const minPrice = typeof req.query.minPrice === 'string'
+            ? req.query.minPrice.trim() === ""
+                ? NaN
+                : Number(req.query.minPrice.trim())
+            : undefined;
+
+        const maxPrice = typeof req.query.maxPrice === 'string'
+            ? req.query.maxPrice.trim() === ""
+                ? NaN
+                : Number(req.query.maxPrice.trim())
+            : undefined
+
+
+        if (minPrice !== undefined && !Number.isFinite(minPrice)) {
+            return res.status(400).json({
+                success: false,
+                message: "Minimum Price must be a valid number"
+            })
+        }
+
+
+        if (maxPrice !== undefined && !Number.isFinite(maxPrice)) {
+            return res.status(400).json({
+                success: false,
+                message: "Maximum Price must be a valid number"
+            })
+        }
+
+        if (minPrice !== undefined && minPrice < 0) {
+            return res.status(400).json({
+                success: false,
+                message: "Minimum Price cannot be negative"
+            })
+        }
+
+        if (maxPrice !== undefined && maxPrice < 0) {
+            return res.status(400).json({
+                success: false,
+                message: "Maximum Price cannot be negative"
+            })
+        }
+
+        if (minPrice !== undefined && maxPrice !== undefined && minPrice > maxPrice) {
+            return res.status(400).json({
+                success: false,
+                message: "minPrice cannot be greater than maxPrice"
+            })
+        }
 
 
 
 
+        const studios = await findAllStudios(category, city, minPrice, maxPrice)
 
-     const studios = await findAllStudios(category, city)
+        res.status(200).json({
+            success: true,
+            message: "Successfully fetch all studio data",
+            data: studios
+        })
 
-     res.status(200).json({
-        success : true,
-        message : "Successfully fetch all studio data",
-        data : studios
-     })
-    
-  } catch (error) {
-    console.log("Failed to fetch studio data", error)
+    } catch (error) {
+        console.log("Failed to fetch studio data", error)
         res.status(500).json({
             success: false,
             message: "Failed to fetch studio data"
         })
-  }
+    }
 
 
 
 
 
-   
 
 
-  
+
+
 
 
 }
@@ -132,7 +178,7 @@ export async function createStudio(req: Request, res: Response) {
 
 
         res.status(500).json({
-            status: false,
+            success: false,
             message: "Failed to create studio"
         })
 
@@ -177,16 +223,17 @@ export async function updateStudio(req: Request, res: Response) {
 
         const result = await UpdateStudioInDB(id, validatedData)
 
-        if ((await result).matchedCount === 0) {
-            res.status(400).json({
+    
+
+        if (result.matchedCount === 0) {
+          return  res.status(400).json({
                 success: false,
                 message: "Studio not found"
             })
-            return
         }
 
         res.status(200).json({
-            status: true,
+            success: true,
             message: "Studio updated successfully"
 
         })
@@ -205,7 +252,7 @@ export async function deleteStudioById(req: Request, res: Response) {
         const id = String(req.params.id);
 
         if (!ObjectId.isValid(id)) {
-            res.status(404).json({
+            res.status(400).json({
                 success: false,
                 message: "Invalid studio ID"
             })

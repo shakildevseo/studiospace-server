@@ -1,7 +1,6 @@
-import { cidrv4, string } from "zod";
 import { getCollection } from "../../config/database.js";
 import type { CreateStudioInput, UpdateStudioInput } from "./studios.validation.js";
-import { ObjectId } from "mongodb"
+import { ObjectId } from "mongodb";
 
 
 
@@ -9,9 +8,13 @@ import { ObjectId } from "mongodb"
 const studiosCollection = getCollection("studios");
 
 
-export async function findAllStudios(category? : string, city? : string) {
+export async function findAllStudios(category? : string, city? : string, minPrice? : number, maxPrice? : number) {
 
-  const filter : {category? : string, "location.city"? : string} = {};
+  const filter : {category? : string, "location.city"? : string, hourlyRate? : {
+  $gte? : number,
+  $lte? : number,
+
+  }} = {};
 
   if(category){
    filter.category = category
@@ -19,6 +22,18 @@ export async function findAllStudios(category? : string, city? : string) {
 
   if(city){
    filter["location.city"] = city
+  }
+
+  if(minPrice !== undefined || maxPrice !== undefined){
+   filter.hourlyRate = {};
+
+   if(minPrice !== undefined){
+      filter.hourlyRate.$gte = minPrice;
+   }
+
+   if(maxPrice !== undefined){
+      filter.hourlyRate.$lte = maxPrice;
+   }
   }
 
 
